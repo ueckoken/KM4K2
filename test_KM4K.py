@@ -169,3 +169,67 @@ class TestKM4K(TestCase):
 
         mocked_servo.open.assert_not_called()
         mocked_servo.lock.assert_not_called()
+
+    @patch("KM4K.start_system")
+    @patch("KM4K.delete_nfc")
+    @patch("KM4K.add_nfc")
+    @patch("KM4K.servo", autospec=True)
+    def test_main_without_args(
+        self, mocked_servo, mocked_add_nfc, mocked_delete_nfc, mocked_start_system
+    ):
+        from KM4K import main
+
+        main(["KM4K.py"])
+
+        mocked_servo.reset.assert_called_once()
+        mocked_add_nfc.assert_not_called()
+        mocked_delete_nfc.assert_not_called()
+        mocked_start_system.assert_called_once()
+
+    @patch("KM4K.start_system")
+    @patch("KM4K.delete_nfc")
+    @patch("KM4K.add_nfc")
+    @patch("KM4K.servo", autospec=True)
+    def test_main_with_0(
+        self, mocked_servo, mocked_add_nfc, mocked_delete_nfc, mocked_start_system
+    ):
+        from KM4K import main
+
+        main(["KM4K.py", "0"])
+
+        mocked_servo.reset.assert_called_once()
+        mocked_add_nfc.assert_called_once()
+        mocked_delete_nfc.assert_not_called()
+        mocked_start_system.assert_not_called()
+
+    @patch("KM4K.start_system")
+    @patch("KM4K.delete_nfc")
+    @patch("KM4K.add_nfc")
+    @patch("KM4K.servo", autospec=True)
+    def test_main_with_1(
+        self, mocked_servo, mocked_add_nfc, mocked_delete_nfc, mocked_start_system
+    ):
+        from KM4K import main
+
+        main(["KM4K.py", "1"])
+
+        mocked_servo.reset.assert_called_once()
+        mocked_add_nfc.assert_not_called()
+        mocked_delete_nfc.assert_called_once()
+        mocked_start_system.assert_not_called()
+
+    @patch("KM4K.start_system")
+    @patch("KM4K.delete_nfc")
+    @patch("KM4K.add_nfc")
+    @patch("KM4K.servo", autospec=True)
+    def test_main_with_2(
+        self, mocked_servo, mocked_add_nfc, mocked_delete_nfc, mocked_start_system
+    ):
+        from KM4K import main
+
+        main(["KM4K.py", "2"])
+
+        mocked_servo.reset.assert_called_once()
+        mocked_add_nfc.assert_not_called()
+        mocked_delete_nfc.assert_not_called()
+        mocked_start_system.assert_called_once()

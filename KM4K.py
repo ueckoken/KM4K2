@@ -101,7 +101,9 @@ def start_system(cur, isopen, okled_pin, ngled_pin):
                 time.sleep(1.7)
 
 
-if __name__ == "__main__":
+
+def main(argv):
+    global mode
     dbname = "database.db"
     conn = sqlite3.connect(dbname)
     cur = conn.cursor()
@@ -114,8 +116,8 @@ if __name__ == "__main__":
     GPIO.setup(okled_pin, GPIO.OUT)
     GPIO.setup(ngled_pin, GPIO.OUT)
 
-    if len(sys.argv) == 2:
-        mode = int(sys.argv[1])
+    if len(argv) == 2:
+        mode = int(argv[1])
 
     try:
         cur.execute(
@@ -136,3 +138,7 @@ if __name__ == "__main__":
     finally:
         conn.commit()
         conn.close()
+
+
+if __name__ == "__main__":
+    main(sys.argv)
