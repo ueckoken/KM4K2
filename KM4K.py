@@ -11,8 +11,6 @@ import rb303 as servo
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
 
-mode = 2
-
 
 def sql_add(cur, name, idm):
     cur.execute("INSERT INTO users (name, idm) VALUES (?, ?)", (name, idm))
@@ -24,7 +22,6 @@ def sql_del(res):
 
 
 def add_nfc(cur):
-    assert mode == 0, "mode is not 0"
     name = input("name> ")
     print("Touch your Suica")
     idm = read_nfc()
@@ -39,7 +36,6 @@ def add_nfc(cur):
 
 
 def delete_nfc(cur):
-    assert mode == 1, "mode is not 1"
     name = input("name> ")
     cur.execute("SELECT * FROM users WHERE name=?", (name,))
     res = cur.fetchall()
@@ -101,9 +97,8 @@ def start_system(cur, isopen, okled_pin, ngled_pin):
                 time.sleep(1.7)
 
 
-
 def main(argv):
-    global mode
+    mode = 2
     dbname = "database.db"
     conn = sqlite3.connect(dbname)
     cur = conn.cursor()
