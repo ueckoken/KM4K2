@@ -28,7 +28,6 @@ class TestKM4K(TestCase):
     def tearDown(self):
         self.conn.close()
 
-    @patch("KM4K.mode", 0)
     @patch("KM4K.input", return_value="kokentaro")
     @patch("KM4K.read_nfc", return_value=b"456789")
     def test_add_nfc_with_new_card(self, mocked_read_nfc, mocked_input):
@@ -46,7 +45,6 @@ class TestKM4K(TestCase):
         self.assertEqual(users[0]["idm"], b"456789")
         self.assertEqual(users[0]["date"], "2006/01/02 15:04:05")
 
-    @patch("KM4K.mode", 0)
     @patch("KM4K.input", return_value="kokentaro")
     @patch("KM4K.read_nfc", return_value=b"456789")
     def test_add_nfc_with_registered_card(self, mocked_read_nfc, mocked_input):
@@ -68,7 +66,6 @@ class TestKM4K(TestCase):
         self.assertEqual(users[0]["idm"], b"456789")
         self.assertEqual(users[0]["date"], "2006/01/02 15:04:05")
 
-    @patch("KM4K.mode", 1)
     @patch("KM4K.input", return_value="kokenjiro")
     def test_delete_nfc_with_registerd_user(self, mocked_input):
         self.cur.execute(
@@ -85,7 +82,6 @@ class TestKM4K(TestCase):
         users = self.cur.fetchall()
         self.assertEqual(len(users), 0)
 
-    @patch("KM4K.mode", 1)
     @patch("KM4K.input", return_value="kokenjiro")
     def test_delete_nfc_with_unregistered_user(self, mocked_input):
         from KM4K import delete_nfc
@@ -98,7 +94,6 @@ class TestKM4K(TestCase):
         users = self.cur.fetchall()
         self.assertEqual(len(users), 0)
 
-    @patch("KM4K.mode", 2)
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
     def test_start_system_with_closed_door_and_registered_card(
@@ -118,7 +113,6 @@ class TestKM4K(TestCase):
         mocked_servo.open.assert_called_once()
         mocked_servo.lock.assert_not_called()
 
-    @patch("KM4K.mode", 2)
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
     def test_start_system_with_closed_door_and_unregistered_card(
@@ -134,7 +128,6 @@ class TestKM4K(TestCase):
         mocked_servo.open.assert_not_called()
         mocked_servo.lock.assert_not_called()
 
-    @patch("KM4K.mode", 2)
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
     def test_start_system_with_open_door_and_registered_card(
@@ -154,7 +147,6 @@ class TestKM4K(TestCase):
         mocked_servo.open.assert_not_called()
         mocked_servo.lock.assert_called_once()
 
-    @patch("KM4K.mode", 2)
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
     def test_start_system_with_open_door_and_unregistered_card(
