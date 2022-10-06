@@ -1,0 +1,11 @@
+FROM python:3.7.3
+
+RUN apt update \
+  && apt install -y libusb-1.0-0 \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY requirements.txt /app/
+RUN pip install -r requirements.txt
+
+COPY *.py /app/
