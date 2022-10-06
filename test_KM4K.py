@@ -179,8 +179,10 @@ class TestKM4K(TestCase):
     ):
         from KM4K import main
 
+        # No additional positional argument implicitly means mode 2: to run the daemon that authorizes IC card and locks/unlocks.
         main(["KM4K.py"])
 
+        # To run the daemon, it should call start_system, not add_nfc or delete_nfc.
         mocked_servo.reset.assert_called_once()
         mocked_add_nfc.assert_not_called()
         mocked_delete_nfc.assert_not_called()
@@ -195,8 +197,10 @@ class TestKM4K(TestCase):
     ):
         from KM4K import main
 
+        # Mode 0 means to add a user.
         main(["KM4K.py", "0"])
 
+        # To add a user, it should call add_nfc, not delete_nfc or start_system.
         mocked_servo.reset.assert_called_once()
         mocked_add_nfc.assert_called_once()
         mocked_delete_nfc.assert_not_called()
@@ -211,8 +215,10 @@ class TestKM4K(TestCase):
     ):
         from KM4K import main
 
+        # Mode 1 means to delete a user.
         main(["KM4K.py", "1"])
 
+        # To delete a user, it should call delete_nfc, not add_nfc or start_system.
         mocked_servo.reset.assert_called_once()
         mocked_add_nfc.assert_not_called()
         mocked_delete_nfc.assert_called_once()
@@ -227,8 +233,10 @@ class TestKM4K(TestCase):
     ):
         from KM4K import main
 
+        # Mode 2 means to run the daemon that authorizes IC card and locks/unlocks.
         main(["KM4K.py", "2"])
 
+        # To run the daemon, it should call start_system, not add_nfc or delete_nfc.
         mocked_servo.reset.assert_called_once()
         mocked_add_nfc.assert_not_called()
         mocked_delete_nfc.assert_not_called()
