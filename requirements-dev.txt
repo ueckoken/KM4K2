@@ -1,0 +1,4 @@
+nfcpy==1.0.3
+RPi.GPIO==0.7.0
+wiringpi==2.60.1
+coverage==6.4.4
