@@ -71,7 +71,7 @@ def check_card_manager(idm):
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     status = json.loads(response.text)
-    if(status['verified'] is None and status['verified']):
+    if status['verified'] is None and status['verified']:
         return True
     return False
 
