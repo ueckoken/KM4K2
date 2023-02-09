@@ -59,7 +59,7 @@ def read_nfc():
                 tag.sys = 3
                 idm = binascii.hexlify(tag.idm)
                 return idm
-            
+
 def check_card_manager(idm):
     url = os.environ["VERIFY_API_URL"]
     payload = json.dumps({
@@ -81,6 +81,7 @@ def start_system(cur, isopen, okled_pin, ngled_pin):
         if idm:
             # Card Managerで登録されているか確認
             isRegisteredSSO = check_card_manager(idm)
+            print("is registered sso", isRegisteredSSO)
             cur.execute("SELECT * FROM users WHERE idm=?", (idm,))
             res = cur.fetchall()
             if len(res) > 0 or isRegisteredSSO:
