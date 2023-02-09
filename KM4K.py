@@ -84,7 +84,7 @@ def start_system(cur, isopen, okled_pin, ngled_pin):
         idm = read_nfc()
         if idm:
             # Card Managerで登録されているか確認
-            isRegisteredSSO = check_card_manager(idm)
+            isRegisteredSSO = check_card_manager(idm.decode())
             print("is registered sso", isRegisteredSSO)
             cur.execute("SELECT * FROM users WHERE idm=?", (idm,))
             res = cur.fetchall()
