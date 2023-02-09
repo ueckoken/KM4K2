@@ -7,6 +7,9 @@ import sys
 import RPi.GPIO as GPIO
 import time
 import rb303 as servo
+import requests
+import json
+import os
 
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
@@ -57,14 +60,31 @@ def read_nfc():
                 idm = binascii.hexlify(tag.idm)
                 return idm
 
+def check_card_manager(idm):
+    url = os.environ["VERIFY_API_URL"]
+    payload = json.dumps({
+      "idm": idm
+    })
+    headers = {
+      'X-Api-Key': os.environ["API_KEY"],
+      'Content-Type': 'application/json'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    status = json.loads(response.text)
+    if status['verified'] is None and status['verified']:
+        return True
+    return False
 
 def start_system(cur, isopen, okled_pin, ngled_pin):
     while True:
         idm = read_nfc()
         if idm:
+            # Card Managerで登録されているか確認
+            isRegisteredSSO = check_card_manager(idm)
+            print("is registered sso", isRegisteredSSO)
             cur.execute("SELECT * FROM users WHERE idm=?", (idm,))
             res = cur.fetchall()
-            if len(res) > 0:
+            if len(res) > 0 or isRegisteredSSO:
                 print("Registered (idm:" + idm.decode() + ")")
 
                 GPIO.output(okled_pin, GPIO.HIGH)
