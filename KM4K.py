@@ -61,17 +61,17 @@ def read_nfc():
                 return idm
             
 def check_card_manager(idm):
-    url = "https://card.ueckoken.club/api/card/verify"
+    url = os.environ["VERIFY_API_URL"]
     payload = json.dumps({
       "idm": idm
     })
     headers = {
-      'x-api-key': os.environ["API_KEY"],
+      'X-Api-Key': os.environ["API_KEY"],
       'Content-Type': 'application/json'
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     status = json.loads(response.text)
-    if(status['verified']!= None and status['verified'] == True):
+    if(status['verified'] is None and status['verified']):
         return True
     return False
 
