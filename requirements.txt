@@ -1,3 +1,3 @@
-nfcpy==1.0.3; platform_machine == 'armv7l'
-RPi.GPIO==0.7.0; platform_machine == 'armv7l'
-wiringpi==2.60.1; platform_machine == 'armv7l'
+nfcpy==1.0.3; platform_machine == 'armv6l'
+RPi.GPIO==0.7.0; platform_machine == 'armv6l'
+wiringpi==2.60.1; platform_machine == 'armv6l'
