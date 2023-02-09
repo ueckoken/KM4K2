@@ -69,11 +69,15 @@ def check_card_manager(idm):
       'X-Api-Key': os.environ["API_KEY"],
       'Content-Type': 'application/json'
     }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    status = json.loads(response.text)
-    if status['verified'] is None and status['verified']:
-        return True
-    return False
+    try:
+        response = requests.request("GET", url, headers=headers, data=payload)
+        status = json.loads(response.text)
+        if status['verified'] is not None and status['verified']:
+            return True
+        return False
+    except Exception as e:
+        print(e)
+        return False
 
 def start_system(cur, isopen, okled_pin, ngled_pin):
     while True:
