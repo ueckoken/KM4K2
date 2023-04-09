@@ -14,42 +14,6 @@ import os
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
 
-
-def sql_add(cur, name, idm):
-    cur.execute("INSERT INTO users (name, idm) VALUES (?, ?)", (name, idm))
-
-
-def sql_del(res):
-    for row in res:
-        print(row)
-
-
-def add_nfc(cur):
-    name = input("name> ")
-    print("Touch your Suica")
-    idm = read_nfc()
-    if idm:
-        cur.execute("SELECT * FROM users WHERE idm=?", (idm,))
-        res = cur.fetchall()
-        if len(res) > 0:
-            print("This key has already registered.")
-        else:
-            sql_add(cur, name, idm)
-            print("Registered (idm:" + idm.decode() + ")")
-
-
-def delete_nfc(cur):
-    name = input("name> ")
-    cur.execute("SELECT * FROM users WHERE name=?", (name,))
-    res = cur.fetchall()
-    if len(res) == 0:
-        print("Unregistered name:" + name)
-    else:
-        # sql_del(res)
-        cur.execute("DELETE FROM users WHERE name=?", (name,))
-        print("Deleted (name:" + name + ")")
-
-
 def read_nfc():
     while True:
         with nfc.ContactlessFrontend("usb") as clf:
@@ -61,7 +25,7 @@ def read_nfc():
                 return idm
 
 def check_card_manager(idm):
-    url = os.environ["VERIFY_API_URL"]
+    url = "https://card.ueckoken.club/api/card/verify"
     payload = json.dumps({
       "idm": idm
     })
@@ -79,16 +43,14 @@ def check_card_manager(idm):
         print(e)
         return False
 
-def start_system(cur, isopen, okled_pin, ngled_pin):
+def start_system(isopen, okled_pin, ngled_pin):
     while True:
         idm = read_nfc()
         if idm:
             # Card Managerで登録されているか確認
             isRegisteredSSO = check_card_manager(idm.decode())
-            print("is registered sso", isRegisteredSSO)
-            cur.execute("SELECT * FROM users WHERE idm=?", (idm,))
-            res = cur.fetchall()
-            if len(res) > 0 or isRegisteredSSO:
+            print("is registered sso", isRegisteredSSO) 
+            if isRegisteredSSO:
                 print("Registered (idm:" + idm.decode() + ")")
 
                 GPIO.output(okled_pin, GPIO.HIGH)
@@ -123,9 +85,6 @@ def start_system(cur, isopen, okled_pin, ngled_pin):
 
 def main(argv):
     mode = 2
-    dbname = "database.db"
-    conn = sqlite3.connect(dbname)
-    cur = conn.cursor()
     isopen = False
     okled_pin = 19
     ngled_pin = 26
@@ -139,24 +98,11 @@ def main(argv):
         mode = int(argv[1])
 
     try:
-        cur.execute(
-            "CREATE TABLE IF NOT EXISTS users (name TEXT NOT NULL, idm BLOB NOT NULL, date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"
-        )
-        if mode == 0:
-            print("Add User")
-            add_nfc(cur)
-        elif mode == 1:
-            print("Delete User")
-            delete_nfc(cur)
-        else:
-            print("Welcome to Koken Kagi System")
-            start_system(cur, isopen, okled_pin, ngled_pin)
+        print("Welcome to Koken Kagi System")
+        start_system(isopen, okled_pin, ngled_pin)
     except Exception as e:
         print("An error has occured!")
         print(e)
-    finally:
-        conn.commit()
-        conn.close()
 
 
 if __name__ == "__main__":
