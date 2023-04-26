@@ -1,27 +1,6 @@
-# KagiMod for Koken (KM4K)
+# KagiMod for Koken ver.2 (KM4K2)
 
-## How to Use
-
-### Register
-
-```
-$ ./Register.sh 
-Add User
-name> kokenuser
-Touch your Suica
-Registered (idm:****)
-$
-```
-
-### Unregister
-
-```
-$ ./Unregister.sh 
-Delete User
-name> kokenuser
-Deleted (name:kokenuser)
-$
-```
+KagiMod for Kokenを元にして認証機能を切り離してたものです。
 
 ### Launch
 

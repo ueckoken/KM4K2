@@ -10,9 +10,13 @@ import rb303 as servo
 import requests
 import json
 import os
+import redis
 
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
+
+# Redisに接続
+conn = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 def read_nfc():
     while True:
@@ -47,10 +51,18 @@ def start_system(isopen, okled_pin, ngled_pin):
     while True:
         idm = read_nfc()
         if idm:
-            # Card Managerで登録されているか確認
-            isRegisteredSSO = check_card_manager(idm.decode())
-            print("is registered sso", isRegisteredSSO) 
-            if isRegisteredSSO:
+            verified = False
+            # Redisに登録されているか確認
+            if conn.get(idm.decode()) is not None:
+                verified = True
+            else:    
+                # Card Managerで登録されているか確認
+                isRegisteredSSO = check_card_manager(idm.decode())
+                if(isRegisteredSSO):
+                    # 有効期限を1週間でRedisに保存
+                    conn.set(idm.decode(),  60 * 60 * 24 * 7)
+                    verified = True
+            if verified:
                 print("Registered (idm:" + idm.decode() + ")")
 
                 GPIO.output(okled_pin, GPIO.HIGH)
