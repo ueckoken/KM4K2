@@ -16,7 +16,11 @@ suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
 
 # Redisに接続
-conn = redis.StrictRedis(host="localhost", port=6379, db=0)
+conn = redis.StrictRedis(
+    host=os.environ["REDIS_HOST"],
+    port=os.environ["REDIS_PORT"],
+    db=os.environ["REDIS_DB"],
+)
 
 
 def read_nfc():
