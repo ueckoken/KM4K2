@@ -18,7 +18,6 @@ wiringpi_mock = Mock()
     },
 )
 class TestKM4K(TestCase):
-
     def setUp(self):
         self.conn = StrictRedis(host="localhost", port=6379, db=0)
 
