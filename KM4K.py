@@ -2,7 +2,6 @@
 
 import nfc
 import binascii
-import sqlite3
 import sys
 import RPi.GPIO as GPIO
 import time
@@ -94,7 +93,6 @@ def start_system(isopen, okled_pin, ngled_pin):
 
 
 def main(argv):
-    mode = 2
     isopen = False
     okled_pin = 19
     ngled_pin = 26
@@ -103,9 +101,6 @@ def main(argv):
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(okled_pin, GPIO.OUT)
     GPIO.setup(ngled_pin, GPIO.OUT)
-
-    if len(argv) == 2:
-        mode = int(argv[1])
 
     try:
         print("Welcome to Koken Kagi System")
