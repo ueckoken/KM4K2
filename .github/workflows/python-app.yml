@@ -25,8 +25,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 6379:6379
 
     steps:
     - uses: actions/checkout@v3
@@ -42,6 +40,10 @@ jobs:
       run: black --check --verbose --diff .
     - name: Test with unittest and gather code coverage
       run: coverage run --branch -m unittest
+      env:
+        REDIS_HOST: redis
+        REDIS_PORT: 6379
+        REDIS_DB: 0
     - name: Show coverage
       run: |
         coverage report -m

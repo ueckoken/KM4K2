@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 from unittest.mock import patch, Mock
 from redis import StrictRedis
@@ -19,7 +20,11 @@ wiringpi_mock = Mock()
 )
 class TestKM4K(TestCase):
     def setUp(self):
-        self.conn = StrictRedis(host="localhost", port=6379, db=0)
+        self.conn = StrictRedis(
+            host=os.environ["REDIS_HOST"],
+            port=os.environ["REDIS_PORT"],
+            db=os.environ["REDIS_DB"],
+        )
 
     def tearDown(self):
         self.conn.flushdb()
