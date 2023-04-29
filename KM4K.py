@@ -16,7 +16,8 @@ suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
 
 # Redisに接続
-conn = redis.StrictRedis(host='localhost', port=6379, db=0)
+conn = redis.StrictRedis(host="localhost", port=6379, db=0)
+
 
 def read_nfc():
     while True:
@@ -28,24 +29,21 @@ def read_nfc():
                 idm = binascii.hexlify(tag.idm)
                 return idm
 
+
 def check_card_manager(idm):
     url = "https://card.ueckoken.club/api/card/verify"
-    payload = json.dumps({
-      "idm": idm
-    })
-    headers = {
-      'X-Api-Key': os.environ["API_KEY"],
-      'Content-Type': 'application/json'
-    }
+    payload = json.dumps({"idm": idm})
+    headers = {"X-Api-Key": os.environ["API_KEY"], "Content-Type": "application/json"}
     try:
         response = requests.request("GET", url, headers=headers, data=payload)
         status = json.loads(response.text)
-        if status['verified'] is not None and status['verified']:
+        if status["verified"] is not None and status["verified"]:
             return True
         return False
     except Exception as e:
         print(e)
         return False
+
 
 def start_system(isopen, okled_pin, ngled_pin):
     while True:
@@ -55,12 +53,12 @@ def start_system(isopen, okled_pin, ngled_pin):
             # Redisに登録されているか確認
             if conn.get(idm.decode()) is not None:
                 verified = True
-            else:    
+            else:
                 # Card Managerで登録されているか確認
                 isRegisteredSSO = check_card_manager(idm.decode())
-                if(isRegisteredSSO):
+                if isRegisteredSSO:
                     # 有効期限を1週間でRedisに保存
-                    conn.set(idm.decode(),  60 * 60 * 24 * 7)
+                    conn.set(idm.decode(), 60 * 60 * 24 * 7)
                     verified = True
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
