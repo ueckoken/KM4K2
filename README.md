@@ -16,3 +16,6 @@ systemctl status KM4K2
 
 - `VERIFY_API_URL` : CardManagerのカード認証用エンドポイント
 - `API_KEY` : CardManagerのAPI-Key
+- `REDIS_HOST` : Redisサーバーのホスト名
+- `REDIS_PORT` : Redisサーバーのポート番号
+- `REDIS_DB` : RedisサーバーのDB番号
