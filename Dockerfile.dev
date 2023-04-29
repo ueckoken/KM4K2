@@ -1,11 +1,11 @@
-FROM python:3.7.3
+FROM debian:buster-slim
 
-RUN apt update \
-  && apt install -y libusb-1.0-0 \
+RUN apt-get update \
+  && apt-get install -y libusb-1.0-0 python3 python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY requirements*.txt /app/
-RUN pip install -r requirements-dev.txt
+RUN pip3 install -r requirements-dev.txt
 
 COPY *.py /app/
