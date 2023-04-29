@@ -1,10 +1,11 @@
-import sqlite3
 from unittest import TestCase
 from unittest.mock import patch, Mock
+from redis import StrictRedis
+import requests_mock
 
 rpi_mock = Mock()
 nfc_mock = Mock()
-wiringpi = Mock()
+wiringpi_mock = Mock()
 
 
 @patch.dict(
@@ -13,154 +14,128 @@ wiringpi = Mock()
         "RPi": rpi_mock,
         "RPi.GPIO": rpi_mock.GPIO,
         "nfc": nfc_mock,
-        "wiringpi": wiringpi
+        "wiringpi": wiringpi_mock,
     },
 )
 class TestKM4K(TestCase):
 
     def setUp(self):
-        self.conn = sqlite3.connect(":memory:")
-        self.conn.row_factory = sqlite3.Row
-        self.cur = self.conn.cursor()
-        # mock CURRENT_TIMESTAMP
-        self.conn.create_function("CURRENT_TIMESTAMP", -1,
-                                  lambda: "2006/01/02 15:04:05")
-        # init schema
-        self.cur.execute(
-            "CREATE TABLE IF NOT EXISTS users (name TEXT NOT NULL, idm BLOB NOT NULL, date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"
-        )
+        self.conn = StrictRedis(host="localhost", port=6379, db=0)
 
     def tearDown(self):
-        self.conn.close()
+        self.conn.flushdb()
 
-    @patch("KM4K.input", return_value="kokentaro")
-    @patch("KM4K.read_nfc", return_value=b"456789")
-    def test_add_nfc_with_new_card(self, mocked_read_nfc, mocked_input):
-        from KM4K import add_nfc
+    def test_check_card_manager_fail_without_api_key(self):
+        from KM4K import check_card_manager
 
-        add_nfc(self.cur)
+        with self.assertRaises(KeyError):
+            check_card_manager("dummy")
 
-        mocked_read_nfc.assert_called_once()
-        mocked_input.assert_called_once()
+    @patch.dict(
+        "os.environ",
+        {
+            "API_KEY": "dummy",
+        },
+    )
+    def test_check_card_manager_invalid_api_key(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                "https://card.ueckoken.club/api/card/verify",
+                status_code=401,
+                reason="Unauthorized",
+                json={"error": "Unauthorized"},
+            )
 
-        self.cur.execute("SELECT * FROM users")
-        users = self.cur.fetchall()
-        self.assertEqual(len(users), 1)
-        self.assertEqual(users[0]["name"], "kokentaro")
-        self.assertEqual(users[0]["idm"], b"456789")
-        self.assertEqual(users[0]["date"], "2006/01/02 15:04:05")
+            from KM4K import check_card_manager
 
-    @patch("KM4K.input", return_value="kokentaro")
-    @patch("KM4K.read_nfc", return_value=b"456789")
-    def test_add_nfc_with_registered_card(self, mocked_read_nfc, mocked_input):
-        self.cur.execute("INSERT INTO users (name, idm) VALUES(?, ?)",
-                         ("kokenjiro", b"456789"))
+            self.assertFalse(check_card_manager("dummy"))
 
-        from KM4K import add_nfc
+    @patch.dict(
+        "os.environ",
+        {
+            "API_KEY": "dummy",
+        },
+    )
+    def test_check_card_manager_invalid(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                "https://card.ueckoken.club/api/card/verify",
+                status_code=400,
+                reason="Bad Request",
+                json={"error": "Bad request"},
+            )
 
-        add_nfc(self.cur)
+            from KM4K import check_card_manager
 
-        mocked_read_nfc.assert_called_once()
-        mocked_input.assert_called_once()
+            self.assertFalse(check_card_manager("dummy"))
 
-        self.cur.execute("SELECT * FROM users")
-        users = self.cur.fetchall()
-        self.assertEqual(len(users), 1)
-        self.assertEqual(users[0]["name"], "kokenjiro")
-        self.assertEqual(users[0]["idm"], b"456789")
-        self.assertEqual(users[0]["date"], "2006/01/02 15:04:05")
+    @patch.dict(
+        "os.environ",
+        {
+            "API_KEY": "dummy",
+        },
+    )
+    def test_check_card_manager_does_not_exist(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                "https://card.ueckoken.club/api/card/verify",
+                status_code=404,
+                reason="Not Found",
+                json={"error": "Not found"},
+            )
 
-    @patch("KM4K.input", return_value="kokenjiro")
-    def test_delete_nfc_with_registerd_user(self, mocked_input):
-        self.cur.execute("INSERT INTO users (name, idm) VALUES(?, ?)",
-                         ("kokenjiro", b"567890"))
+            from KM4K import check_card_manager
 
-        from KM4K import delete_nfc
+            self.assertFalse(check_card_manager("dummy"))
 
-        delete_nfc(self.cur)
+    @patch.dict(
+        "os.environ",
+        {
+            "API_KEY": "dummy",
+        },
+    )
+    def test_check_card_manager_forbidden(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                "https://card.ueckoken.club/api/card/verify",
+                status_code=403,
+                reason="Forbidden",
+                json={"error": "Forbidden"},
+            )
 
-        mocked_input.assert_called_once()
+            from KM4K import check_card_manager
 
-        self.cur.execute("SELECT * FROM users")
-        users = self.cur.fetchall()
-        self.assertEqual(len(users), 0)
+            self.assertFalse(check_card_manager("dummy"))
 
-    @patch("KM4K.input", return_value="kokenjiro")
-    def test_delete_nfc_with_unregistered_user(self, mocked_input):
-        from KM4K import delete_nfc
+    @patch.dict(
+        "os.environ",
+        {
+            "API_KEY": "dummy",
+        },
+    )
+    def test_check_card_manager_verified(self):
+        with requests_mock.Mocker() as m:
+            m.get(
+                "https://card.ueckoken.club/api/card/verify",
+                status_code=200,
+                reason="OK",
+                json={"verified": True},
+            )
 
-        delete_nfc(self.cur)
+            from KM4K import check_card_manager
 
-        mocked_input.assert_called_once()
-
-        self.cur.execute("SELECT * FROM users")
-        users = self.cur.fetchall()
-        self.assertEqual(len(users), 0)
+            self.assertTrue(check_card_manager("dummy"))
 
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    @patch("KM4K.check_card_manager", return_value=True)
-    def test_start_system_with_closed_door_exist_card_manager_record(
-        self,
-        mocked_check_card_manager,
-        mocked_read_nfc,
-        mocked_servo,
+    @patch("KM4K.check_card_manager", return_value=False)
+    def test_start_system_with_closed_door_and_unregistered_card(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
     ):
-
-        self.cur.execute("INSERT INTO users (name, idm) VALUES(?, ?)",
-                         ("kokensaburo", b"345678"))
         from KM4K import start_system
 
         try:
-            start_system(self.cur, False, 19, 26)
-        except InterruptedError:
-            pass
-
-        mocked_servo.open.assert_called_once()
-        mocked_servo.lock.assert_not_called()
-
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    @patch("KM4K.check_card_manager", return_value=False)
-    def test_start_system_with_closed_door_no_exist_card_manager_record_and_exist_innerDB(
-            self, mocked_check_card_manager, mocked_read_nfc, mocked_servo):
-        self.cur.execute("INSERT INTO users (name, idm) VALUES(?, ?)",
-                         ("kokensaburo", b"345678"))
-
-        from KM4K import start_system
-
-        try:
-            start_system(self.cur, False, 19, 26)
-        except InterruptedError:
-            pass
-
-        mocked_servo.open.assert_called_once()
-        mocked_servo.lock.assert_not_called()
-
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    @patch("KM4K.check_card_manager", return_value=True)
-    def test_start_system_with_closed_door_and_unregistered_card_with_sso_record(
-            self, mocked_check_card_manager, mocked_read_nfc, mocked_servo):
-        from KM4K import start_system
-
-        try:
-            start_system(self.cur, False, 19, 26)
-        except InterruptedError:
-            pass
-
-        mocked_servo.open.assert_called_once()
-        mocked_servo.lock.assert_not_called()
-
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    @patch("KM4K.check_card_manager", return_value=False)
-    def test_start_system_with_closed_door_and_unregistered_card_without_sso_record(
-            self, mocked_check_card_manager, mocked_read_nfc, mocked_servo):
-        from KM4K import start_system
-
-        try:
-            start_system(self.cur, False, 19, 26)
+            start_system(False, 19, 26)
         except InterruptedError:
             pass
 
@@ -170,103 +145,81 @@ class TestKM4K(TestCase):
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
     @patch("KM4K.check_card_manager", return_value=True)
-    def test_start_system_with_open_door_and_registered_card_with_sso_record(
-            self, mocked_check_card_manager, mocked_read_nfc, mocked_servo):
-        self.cur.execute("INSERT INTO users (name, idm) VALUES(?, ?)",
-                         ("kokensaburo", b"345678"))
-
+    def test_start_system_with_closed_door_and_registered_card(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
+    ):
         from KM4K import start_system
 
         try:
-            start_system(self.cur, True, 19, 26)
+            start_system(False, 19, 26)
         except InterruptedError:
             pass
 
-        mocked_servo.open.assert_not_called()
-        mocked_servo.lock.assert_called_once()
+        mocked_servo.open.assert_called_once()
+        mocked_servo.lock.assert_not_called()
 
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
     @patch("KM4K.check_card_manager", return_value=False)
-    def test_start_system_with_open_door_and_registered_card_without_sso_record(
-            self, mocked_check_card_manager, mocked_read_nfc, mocked_servo):
-        self.cur.execute("INSERT INTO users (name, idm) VALUES(?, ?)",
-                         ("kokensaburo", b"345678"))
-
+    def test_start_system_with_open_door_and_unregistered_card(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
+    ):
         from KM4K import start_system
 
         try:
-            start_system(self.cur, True, 19, 26)
+            start_system(True, 19, 26)
+        except InterruptedError:
+            pass
+
+        mocked_servo.open.assert_not_called()
+        mocked_servo.lock.assert_not_called()
+
+    @patch("KM4K.servo", autospec=True)
+    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
+    @patch("KM4K.check_card_manager", return_value=True)
+    def test_start_system_with_open_door_and_registered_card(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
+    ):
+        from KM4K import start_system
+
+        try:
+            start_system(True, 19, 26)
         except InterruptedError:
             pass
 
         mocked_servo.open.assert_not_called()
         mocked_servo.lock.assert_called_once()
 
-    @patch("KM4K.start_system")
-    @patch("KM4K.delete_nfc")
-    @patch("KM4K.add_nfc")
     @patch("KM4K.servo", autospec=True)
-    def test_main_without_args(self, mocked_servo, mocked_add_nfc,
-                               mocked_delete_nfc, mocked_start_system):
-        from KM4K import main
+    @patch("KM4K.read_nfc", side_effect=[b"345678", b"345678", InterruptedError])
+    @patch("KM4K.check_card_manager", return_value=True)
+    def test_start_system_with_redis_cache(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
+    ):
+        from KM4K import start_system
 
-        # No additional positional argument implicitly means mode 2: to run the daemon that authorizes IC card and locks/unlocks.
-        main(["KM4K.py"])
+        try:
+            start_system(True, 19, 26)
+        except InterruptedError:
+            pass
 
-        # To run the daemon, it should call start_system, not add_nfc or delete_nfc.
-        mocked_servo.reset.assert_called_once()
-        mocked_add_nfc.assert_not_called()
-        mocked_delete_nfc.assert_not_called()
-        mocked_start_system.assert_called_once()
+        mocked_servo.open.assert_called_once()
+        mocked_servo.lock.assert_called_once()
+        mocked_check_card_manager.assert_called_once()
 
-    @patch("KM4K.start_system")
-    @patch("KM4K.delete_nfc")
-    @patch("KM4K.add_nfc")
     @patch("KM4K.servo", autospec=True)
-    def test_main_with_0(self, mocked_servo, mocked_add_nfc, mocked_delete_nfc,
-                         mocked_start_system):
-        from KM4K import main
+    @patch("KM4K.read_nfc", side_effect=[b"456789", b"456789", InterruptedError])
+    @patch("KM4K.check_card_manager", side_effect=[True, False])
+    def test_start_system_unregistered_card_with_redis_cache(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
+    ):
+        from KM4K import start_system
 
-        # Mode 0 means to add a user.
-        main(["KM4K.py", "0"])
+        try:
+            start_system(True, 19, 26)
+        except InterruptedError:
+            pass
 
-        # To add a user, it should call add_nfc, not delete_nfc or start_system.
-        mocked_servo.reset.assert_called_once()
-        mocked_add_nfc.assert_called_once()
-        mocked_delete_nfc.assert_not_called()
-        mocked_start_system.assert_not_called()
-
-    @patch("KM4K.start_system")
-    @patch("KM4K.delete_nfc")
-    @patch("KM4K.add_nfc")
-    @patch("KM4K.servo", autospec=True)
-    def test_main_with_1(self, mocked_servo, mocked_add_nfc, mocked_delete_nfc,
-                         mocked_start_system):
-        from KM4K import main
-
-        # Mode 1 means to delete a user.
-        main(["KM4K.py", "1"])
-
-        # To delete a user, it should call delete_nfc, not add_nfc or start_system.
-        mocked_servo.reset.assert_called_once()
-        mocked_add_nfc.assert_not_called()
-        mocked_delete_nfc.assert_called_once()
-        mocked_start_system.assert_not_called()
-
-    @patch("KM4K.start_system")
-    @patch("KM4K.delete_nfc")
-    @patch("KM4K.add_nfc")
-    @patch("KM4K.servo", autospec=True)
-    def test_main_with_2(self, mocked_servo, mocked_add_nfc, mocked_delete_nfc,
-                         mocked_start_system):
-        from KM4K import main
-
-        # Mode 2 means to run the daemon that authorizes IC card and locks/unlocks.
-        main(["KM4K.py", "2"])
-
-        # To run the daemon, it should call start_system, not add_nfc or delete_nfc.
-        mocked_servo.reset.assert_called_once()
-        mocked_add_nfc.assert_not_called()
-        mocked_delete_nfc.assert_not_called()
-        mocked_start_system.assert_called_once()
+        mocked_servo.open.assert_called_once()
+        mocked_servo.lock.assert_called_once()
+        mocked_check_card_manager.assert_called_once()
