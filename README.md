@@ -7,7 +7,7 @@ KagiMod for Kokenを元にして認証機能を切り離してたものです。
 KM4K.serviceはsystemdに登録されています。
 
 ```
-systemctl status KM4K
+systemctl status KM4K2
 ```
 
 で確認
