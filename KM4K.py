@@ -16,13 +16,6 @@ import rb303 as servo
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
 
-# Redisに接続
-conn = redis.StrictRedis(
-    host=os.environ["REDIS_HOST"],
-    port=os.environ["REDIS_PORT"],
-    db=os.environ["REDIS_DB"],
-)
-
 
 def read_nfc():
     while True:
@@ -55,20 +48,20 @@ def check_card_manager(idm):
     return status["verified"] is not None and status["verified"]
 
 
-def start_system(isopen, okled_pin, ngled_pin):
+def start_system(isopen, okled_pin, ngled_pin, cache: redis.Redis):
     while True:
         idm = read_nfc()
         if idm:
             verified = False
             # Redisに登録されているか確認
-            if conn.get(idm.decode()) is not None:
+            if cache.get(idm.decode()) is not None:
                 verified = True
             else:
                 # Card Managerで登録されているか確認
                 is_registered_sso = check_card_manager(idm.decode())
                 if is_registered_sso:
                     # 有効期限を1週間でRedisに保存
-                    conn.set(idm.decode(), 60 * 60 * 24 * 7)
+                    cache.set(idm.decode(), 60 * 60 * 24 * 7)
                     verified = True
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
@@ -108,6 +101,13 @@ def main(_):
     okled_pin = 19
     ngled_pin = 26
 
+    # Redisに接続
+    conn = redis.StrictRedis(
+        host=os.environ["REDIS_HOST"],
+        port=os.environ["REDIS_PORT"],
+        db=os.environ["REDIS_DB"],
+    )
+
     servo.reset()
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(okled_pin, GPIO.OUT)
@@ -115,7 +115,7 @@ def main(_):
 
     try:
         print("Welcome to Koken Kagi System")
-        start_system(isopen, okled_pin, ngled_pin)
+        start_system(isopen, okled_pin, ngled_pin, conn)
     except Exception as e:  # noqa: BLE001
         print("An error has occured!")
         print(e)
