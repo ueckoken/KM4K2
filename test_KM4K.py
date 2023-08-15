@@ -147,7 +147,7 @@ class TestKM4K(TestCase):
         with contextlib.suppress(InterruptedError):
             start_system(isopen=False, okled_pin=19, ngled_pin=26)
 
-        mocked_servo.open.assert_not_called()
+        mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_not_called()
 
     @patch("KM4K.servo", autospec=True)
@@ -164,7 +164,7 @@ class TestKM4K(TestCase):
         with contextlib.suppress(InterruptedError):
             start_system(isopen=False, okled_pin=19, ngled_pin=26)
 
-        mocked_servo.open.assert_called_once()
+        mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_not_called()
 
     @patch("KM4K.servo", autospec=True)
@@ -181,7 +181,7 @@ class TestKM4K(TestCase):
         with contextlib.suppress(InterruptedError):
             start_system(isopen=True, okled_pin=19, ngled_pin=26)
 
-        mocked_servo.open.assert_not_called()
+        mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_not_called()
 
     @patch("KM4K.servo", autospec=True)
@@ -198,7 +198,7 @@ class TestKM4K(TestCase):
         with contextlib.suppress(InterruptedError):
             start_system(isopen=True, okled_pin=19, ngled_pin=26)
 
-        mocked_servo.open.assert_not_called()
+        mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_called_once()
 
     @patch("KM4K.servo", autospec=True)
@@ -215,7 +215,7 @@ class TestKM4K(TestCase):
         with contextlib.suppress(InterruptedError):
             start_system(isopen=True, okled_pin=19, ngled_pin=26)
 
-        mocked_servo.open.assert_called_once()
+        mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_called_once()
         mocked_check_card_manager.assert_called_once()
 
@@ -233,6 +233,6 @@ class TestKM4K(TestCase):
         with contextlib.suppress(InterruptedError):
             start_system(isopen=True, okled_pin=19, ngled_pin=26)
 
-        mocked_servo.open.assert_called_once()
+        mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_called_once()
         mocked_check_card_manager.assert_called_once()
