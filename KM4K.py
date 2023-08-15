@@ -1,17 +1,16 @@
 #!/usr/bin/python3
 
 import binascii
-import json
 import os
 import sys
 import time
 
 import nfc
 import redis
-import requests
 from RPi import GPIO
 
 import rb303 as servo
+from card_sdk import CardSDK
 
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
@@ -34,28 +33,7 @@ def read_nfc():
                 return binascii.hexlify(tag.idm)
 
 
-def check_card_manager(idm):
-    url = "https://card.ueckoken.club/api/card/verify"
-    payload = json.dumps({"idm": idm})
-    headers = {"X-Api-Key": os.environ["API_KEY"], "Content-Type": "application/json"}
-    response = requests.request("GET", url, headers=headers, data=payload)
-
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        print(e)
-        return False
-
-    try:
-        status = response.json()
-    except requests.exceptions.JSONDecodeError as e:
-        print(e)
-        return False
-
-    return status["verified"] is not None and status["verified"]
-
-
-def start_system(isopen, okled_pin, ngled_pin):
+def start_system(isopen, okled_pin, ngled_pin, card: CardSDK):
     while True:
         idm = read_nfc()
         if idm:
@@ -65,7 +43,7 @@ def start_system(isopen, okled_pin, ngled_pin):
                 verified = True
             else:
                 # Card Managerで登録されているか確認
-                is_registered_sso = check_card_manager(idm.decode())
+                is_registered_sso = card.verify(idm.decode())
                 if is_registered_sso:
                     # 有効期限を1週間でRedisに保存
                     conn.set(idm.decode(), 60 * 60 * 24 * 7)
@@ -113,9 +91,11 @@ def main(_):
     GPIO.setup(okled_pin, GPIO.OUT)
     GPIO.setup(ngled_pin, GPIO.OUT)
 
+    card = CardSDK("https://card.ueckoken.club", os.environ["API_KEY"])
+
     try:
         print("Welcome to Koken Kagi System")
-        start_system(isopen, okled_pin, ngled_pin)
+        start_system(isopen, okled_pin, ngled_pin, card)
     except Exception as e:  # noqa: BLE001
         print("An error has occured!")
         print(e)
