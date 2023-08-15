@@ -1,4 +1,5 @@
 import os
+import time
 from unittest import TestCase
 from unittest.mock import patch, Mock
 from redis import StrictRedis
@@ -227,3 +228,26 @@ class TestKM4K(TestCase):
         mocked_servo.open.assert_called_once()
         mocked_servo.lock.assert_called_once()
         mocked_check_card_manager.assert_called_once()
+
+    @patch("KM4K.CACHE_EXPIRES_SECONDS", 5)
+    @patch("KM4K.servo", autospec=True)
+    @patch("KM4K.read_nfc", side_effect=[b"456789", b"456789", InterruptedError])
+    @patch("KM4K.check_card_manager", side_effect=[True, False])
+    def test_start_system_with_redis_cache_expires(
+        self, mocked_check_card_manager, mocked_read_nfc, mocked_servo
+    ):
+        from KM4K import start_system
+
+        try:
+            start_system(True, 19, 26)
+        except InterruptedError:
+            pass
+
+        mocked_servo.open.assert_called_once()
+        mocked_servo.lock.assert_called_once()
+        mocked_check_card_manager.assert_called_once()
+
+        time.sleep(10)
+
+        self.assertEqual(self.conn.exists("456789"), 0)
+        self.assertIsNone(self.conn.get("456789"))

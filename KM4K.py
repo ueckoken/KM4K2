@@ -22,6 +22,10 @@ conn = redis.StrictRedis(
 )
 
 
+# 有効期間1週間
+CACHE_EXPIRES_SECONDS = 60 * 60 * 24 * 7
+
+
 def read_nfc():
     while True:
         with nfc.ContactlessFrontend("usb") as clf:
@@ -60,8 +64,8 @@ def start_system(isopen, okled_pin, ngled_pin):
                 # Card Managerで登録されているか確認
                 isRegisteredSSO = check_card_manager(idm.decode())
                 if isRegisteredSSO:
-                    # 有効期限を1週間でRedisに保存
-                    conn.set(idm.decode(), 60 * 60 * 24 * 7)
+                    # 有効期限付きでRedisに保存
+                    conn.set(idm.decode(), CACHE_EXPIRES_SECONDS)
                     verified = True
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
