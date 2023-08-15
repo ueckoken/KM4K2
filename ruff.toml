@@ -1,0 +1,3 @@
+select = ["ALL"]
+ignore = ["D", "ANN", "PT", "T201", "TD"]
+target-version = "py37"
