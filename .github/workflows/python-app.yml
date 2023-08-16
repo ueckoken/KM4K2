@@ -40,6 +40,8 @@ jobs:
         pip install -r requirements-dev.txt
     - name: Check format
       run: black --check --verbose --diff .
+    - name: Lint
+      run: ruff check --format github .
     - name: Test with unittest and gather code coverage
       run: coverage run --branch -m unittest
       env:

@@ -1,15 +1,16 @@
 #!/usr/bin/python3
 
-import nfc
 import binascii
-import sys
-import RPi.GPIO as GPIO
-import time
-import rb303 as servo
-import requests
-import json
 import os
+import sys
+import time
+
+import nfc
 import redis
+from RPi import GPIO
+
+import rb303 as servo
+from card_sdk import CardSDK
 
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
@@ -33,26 +34,10 @@ def read_nfc():
             while target:
                 tag = nfc.tag.activate(clf, target)
                 tag.sys = 3
-                idm = binascii.hexlify(tag.idm)
-                return idm
+                return binascii.hexlify(tag.idm)
 
 
-def check_card_manager(idm):
-    url = "https://card.ueckoken.club/api/card/verify"
-    payload = json.dumps({"idm": idm})
-    headers = {"X-Api-Key": os.environ["API_KEY"], "Content-Type": "application/json"}
-    try:
-        response = requests.request("GET", url, headers=headers, data=payload)
-        status = json.loads(response.text)
-        if status["verified"] is not None and status["verified"]:
-            return True
-        return False
-    except Exception as e:
-        print(e)
-        return False
-
-
-def start_system(isopen, okled_pin, ngled_pin):
+def start_system(isopen, okled_pin, ngled_pin, card: CardSDK):
     while True:
         idm = read_nfc()
         if idm:
@@ -62,8 +47,8 @@ def start_system(isopen, okled_pin, ngled_pin):
                 verified = True
             else:
                 # Card Managerで登録されているか確認
-                isRegisteredSSO = check_card_manager(idm.decode())
-                if isRegisteredSSO:
+                is_registered_sso = card.verify(idm.decode())
+                if is_registered_sso:
                     # 有効期限付きでRedisに保存
                     # 値は今のところ使わないので適当に1にしておいた
                     conn.set(idm.decode(), 1, ex=CACHE_EXPIRES_SECONDS)
@@ -80,7 +65,7 @@ def start_system(isopen, okled_pin, ngled_pin):
                 GPIO.output(okled_pin, GPIO.LOW)
 
                 if not isopen:
-                    servo.open()
+                    servo.unlock()
                     isopen = not isopen
                     print("open")
                 else:
@@ -101,7 +86,7 @@ def start_system(isopen, okled_pin, ngled_pin):
                 time.sleep(1.7)
 
 
-def main(argv):
+def main(_):
     isopen = False
     okled_pin = 19
     ngled_pin = 26
@@ -111,10 +96,12 @@ def main(argv):
     GPIO.setup(okled_pin, GPIO.OUT)
     GPIO.setup(ngled_pin, GPIO.OUT)
 
+    card = CardSDK("https://card.ueckoken.club", os.environ["API_KEY"])
+
     try:
         print("Welcome to Koken Kagi System")
-        start_system(isopen, okled_pin, ngled_pin)
-    except Exception as e:
+        start_system(isopen, okled_pin, ngled_pin, card)
+    except Exception as e:  # noqa: BLE001
         print("An error has occured!")
         print(e)
 

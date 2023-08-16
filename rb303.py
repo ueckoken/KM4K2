@@ -1,5 +1,6 @@
-import wiringpi
 import time
+
+import wiringpi
 
 wiringpi.wiringPiSetupGpio()
 wiringpi.pinMode(12, wiringpi.GPIO.PWM_OUTPUT)
@@ -13,7 +14,7 @@ def servo(angle):
     wiringpi.pwmWrite(12, angle)
 
 
-def open():
+def unlock():
     servo(180)
     time.sleep(1)
     servo(90)
