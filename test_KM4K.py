@@ -157,12 +157,10 @@ class TestKM4K(TestCase):
 
         from KM4K import start_system
 
-        try:
-            start_system(True, 19, 26)
-        except InterruptedError:
-            pass
+        with contextlib.suppress(InterruptedError):
+            start_system(isopen=True, okled_pin=19, ngled_pin=26, card=card)
 
-        mocked_servo.open.assert_called_once()
+        mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_called_once()
         card.verify.assert_called_once()
 
