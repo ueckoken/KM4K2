@@ -15,13 +15,6 @@ from card_sdk import CardSDK
 suica = nfc.clf.RemoteTarget("212F")
 suica.sensf_req = bytearray.fromhex("0000030000")
 
-# Redisに接続
-conn = redis.StrictRedis(
-    host=os.environ["REDIS_HOST"],
-    port=os.environ["REDIS_PORT"],
-    db=os.environ["REDIS_DB"],
-)
-
 
 # 有効期間1週間
 CACHE_EXPIRES_SECONDS = 60 * 60 * 24 * 7
@@ -37,13 +30,13 @@ def read_nfc():
                 return binascii.hexlify(tag.idm)
 
 
-def start_system(isopen, okled_pin, ngled_pin, card: CardSDK):
+def start_system(isopen, okled_pin, ngled_pin, cache: redis.Redis, card: CardSDK):
     while True:
         idm = read_nfc()
         if idm:
             verified = False
             # Redisに登録されているか確認
-            if conn.get(idm.decode()) is not None:
+            if cache.get(idm.decode()) is not None:
                 verified = True
             else:
                 # Card Managerで登録されているか確認
@@ -51,7 +44,7 @@ def start_system(isopen, okled_pin, ngled_pin, card: CardSDK):
                 if is_registered_sso:
                     # 有効期限付きでRedisに保存
                     # 値は今のところ使わないので適当に1にしておいた
-                    conn.set(idm.decode(), 1, ex=CACHE_EXPIRES_SECONDS)
+                    cache.set(idm.decode(), 1, ex=CACHE_EXPIRES_SECONDS)
                     verified = True
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
@@ -91,6 +84,13 @@ def main(_):
     okled_pin = 19
     ngled_pin = 26
 
+    # Redisに接続
+    conn = redis.StrictRedis(
+        host=os.environ["REDIS_HOST"],
+        port=os.environ["REDIS_PORT"],
+        db=os.environ["REDIS_DB"],
+    )
+
     servo.reset()
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(okled_pin, GPIO.OUT)
@@ -100,7 +100,7 @@ def main(_):
 
     try:
         print("Welcome to Koken Kagi System")
-        start_system(isopen, okled_pin, ngled_pin, card)
+        start_system(isopen, okled_pin, ngled_pin, conn, card)
     except Exception as e:  # noqa: BLE001
         print("An error has occured!")
         print(e)

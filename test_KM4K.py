@@ -47,7 +47,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=False, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=False,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_not_called()
@@ -65,7 +71,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=False, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=False,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_not_called()
@@ -83,7 +95,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=True, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=True,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_not_called()
@@ -101,7 +119,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=True, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=True,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_called_once()
@@ -119,7 +143,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=True, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=True,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_called_once()
@@ -138,7 +168,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=True, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=True,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_called_once()
@@ -158,7 +194,13 @@ class TestKM4K(TestCase):
         from KM4K import start_system
 
         with contextlib.suppress(InterruptedError):
-            start_system(isopen=True, okled_pin=19, ngled_pin=26, card=card)
+            start_system(
+                isopen=True,
+                okled_pin=19,
+                ngled_pin=26,
+                cache=self.conn,
+                card=card,
+            )
 
         mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_called_once()
