@@ -1,6 +1,8 @@
 # KagiMod for Koken ver.2 (KM4K2)
 
-KagiMod for Kokenを元にして認証機能を切り離してたものです。
+KagiMod for Kokenを元にして認証機能を切り離したものです。
+
+RedisにIdmをキャッシュすることによって高速な認証を実現しています。
 
 ### Launch
 
