@@ -65,7 +65,8 @@ def start_system(isopen, okled_pin, ngled_pin):
                 isRegisteredSSO = check_card_manager(idm.decode())
                 if isRegisteredSSO:
                     # 有効期限付きでRedisに保存
-                    conn.set(idm.decode(), CACHE_EXPIRES_SECONDS)
+                    # 値は今のところ使わないので適当に1にしておいた
+                    conn.set(idm.decode(), 1, ex=CACHE_EXPIRES_SECONDS)
                     verified = True
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
