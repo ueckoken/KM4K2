@@ -4,6 +4,7 @@ import binascii
 import os
 import sys
 import time
+from datetime import timedelta
 
 import nfc
 import redis
@@ -17,7 +18,7 @@ suica.sensf_req = bytearray.fromhex("0000030000")
 
 
 # 有効期間1週間
-CACHE_EXPIRES_SECONDS = 60 * 60 * 24 * 7
+CACHE_EXPIRES_DELTA = timedelta(weeks=1)
 
 
 def read_nfc():
@@ -44,7 +45,7 @@ def start_system(isopen, okled_pin, ngled_pin, cache: redis.Redis, card: CardSDK
                 if is_registered_sso:
                     # 有効期限付きでRedisに保存
                     # 値は今のところ使わないので適当に1にしておいた
-                    cache.set(idm.decode(), 1, ex=CACHE_EXPIRES_SECONDS)
+                    cache.set(idm.decode(), 1, ex=CACHE_EXPIRES_DELTA)
                     verified = True
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
