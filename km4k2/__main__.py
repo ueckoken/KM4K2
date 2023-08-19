@@ -2,10 +2,10 @@ import os
 
 import redis
 from RPi import GPIO
-from km4k2.km4k import start_system
 
 import km4k2.rb303 as servo
 from km4k2.card_sdk import CardSDK
+from km4k2.km4k import start_system
 
 
 def main():
