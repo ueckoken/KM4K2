@@ -7,7 +7,7 @@ from unittest.mock import Mock, create_autospec, patch
 
 from redis import StrictRedis
 
-from card_sdk import CardSDK
+from km4k2.card_sdk import CardSDK
 
 rpi_mock = Mock()
 nfc_mock = Mock()
@@ -44,7 +44,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.return_value = False
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(
@@ -68,7 +68,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.return_value = True
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(
@@ -92,7 +92,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.return_value = False
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(
@@ -116,7 +116,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.return_value = True
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(
@@ -140,7 +140,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.return_value = True
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(
@@ -165,7 +165,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.side_effect = [True, False]
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(
@@ -191,7 +191,7 @@ class TestKM4K(TestCase):
         card = create_autospec(CardSDK)
         card.verify.side_effect = [True, False]
 
-        from KM4K import start_system
+        from km4k2.km4k import start_system
 
         with contextlib.suppress(InterruptedError):
             start_system(

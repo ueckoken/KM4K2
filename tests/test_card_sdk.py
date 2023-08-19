@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import requests_mock
 
-from card_sdk import CardSDK
+from km4k2.card_sdk import CardSDK
 
 
 class TestCardSDK(TestCase):
