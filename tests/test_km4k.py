@@ -23,7 +23,7 @@ wiringpi_mock = Mock()
         "wiringpi": wiringpi_mock,
     },
 )
-class TestKM4K(TestCase):
+class TestKm4k(TestCase):
     def setUp(self):
         self.conn = StrictRedis(
             host=os.environ["REDIS_HOST"],
@@ -34,19 +34,29 @@ class TestKM4K(TestCase):
     def tearDown(self):
         self.conn.flushdb()
 
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    def test_start_system_with_closed_door_and_unregistered_card(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_with_closed_door_and_unregistered_card(self):
         card = create_autospec(CardSDK)
         card.verify.return_value = False
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        # なぜか @patch だと2個目以降のテストメソッドでパッチが当たらないので、しかたな
+        # く with でべた書き。たぶんこのファイルのトップレベルで km4k2.card_sdk をインポ
+        # ートしたことで振る舞いが変わっている。
+        # km4k2.card_sdk をすべてテストメソッド内でローカルインポートするようにすれば
+        # @patch が効くようになるが、ほかのファイルで1つでもトップレベルで km4k2 のモジ
+        # ュールをインポートしていたら効かなくなる
+        # パッケージ化する前(__init__.py)は効いてたのでパッケージの読み込みとかに関係
+        # してそう
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"345678", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=False,
                 okled_pin=19,
@@ -58,19 +68,21 @@ class TestKM4K(TestCase):
         mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_not_called()
 
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    def test_start_system_with_closed_door_and_registered_card(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_with_closed_door_and_registered_card(self):
         card = create_autospec(CardSDK)
         card.verify.return_value = True
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"345678", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=False,
                 okled_pin=19,
@@ -82,19 +94,21 @@ class TestKM4K(TestCase):
         mocked_servo.unlock.assert_called_once()
         mocked_servo.lock.assert_not_called()
 
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    def test_start_system_with_open_door_and_unregistered_card(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_with_open_door_and_unregistered_card(self):
         card = create_autospec(CardSDK)
         card.verify.return_value = False
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"345678", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=True,
                 okled_pin=19,
@@ -106,19 +120,21 @@ class TestKM4K(TestCase):
         mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_not_called()
 
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", InterruptedError])
-    def test_start_system_with_open_door_and_registered_card(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_with_open_door_and_registered_card(self):
         card = create_autospec(CardSDK)
         card.verify.return_value = True
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"345678", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=True,
                 okled_pin=19,
@@ -130,19 +146,21 @@ class TestKM4K(TestCase):
         mocked_servo.unlock.assert_not_called()
         mocked_servo.lock.assert_called_once()
 
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"345678", b"345678", InterruptedError])
-    def test_start_system_with_redis_cache(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_with_redis_cache(self):
         card = create_autospec(CardSDK)
         card.verify.return_value = True
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"345678", b"345678", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=True,
                 okled_pin=19,
@@ -155,19 +173,21 @@ class TestKM4K(TestCase):
         mocked_servo.lock.assert_called_once()
         card.verify.assert_called_once()
 
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"456789", b"456789", InterruptedError])
-    def test_start_system_unregistered_card_with_redis_cache(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_unregistered_card_with_redis_cache(self):
         card = create_autospec(CardSDK)
         card.verify.side_effect = [True, False]
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"456789", b"456789", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=True,
                 okled_pin=19,
@@ -180,20 +200,24 @@ class TestKM4K(TestCase):
         mocked_servo.lock.assert_called_once()
         card.verify.assert_called_once()
 
-    @patch("KM4K.CACHE_EXPIRES_SECONDS", 5)
-    @patch("KM4K.servo", autospec=True)
-    @patch("KM4K.read_nfc", side_effect=[b"456789", b"456789", InterruptedError])
-    def test_start_system_with_redis_cache_expires(
-        self,
-        mocked_read_nfc,  # noqa: ARG002
-        mocked_servo,
-    ):
+    def test_start_system_with_redis_cache_expires(self):
         card = create_autospec(CardSDK)
         card.verify.side_effect = [True, False]
 
         from km4k2.km4k import start_system
 
-        with contextlib.suppress(InterruptedError):
+        with patch(
+            "km4k2.km4k.read_nfc",
+            side_effect=[b"456789", b"456789", InterruptedError],
+        ), patch(
+            "km4k2.km4k.servo",
+            autospec=True,
+        ) as mocked_servo, patch(
+            "km4k2.km4k.CACHE_EXPIRES_SECONDS",
+            5,
+        ), contextlib.suppress(
+            InterruptedError,
+        ):
             start_system(
                 isopen=True,
                 okled_pin=19,
