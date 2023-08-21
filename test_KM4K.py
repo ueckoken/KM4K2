@@ -2,6 +2,7 @@
 import contextlib
 import os
 import time
+from datetime import timedelta
 from unittest import TestCase
 from unittest.mock import Mock, create_autospec, patch
 
@@ -180,7 +181,7 @@ class TestKM4K(TestCase):
         mocked_servo.lock.assert_called_once()
         card.verify.assert_called_once()
 
-    @patch("KM4K.CACHE_EXPIRES_SECONDS", 5)
+    @patch("KM4K.CACHE_EXPIRES_DELTA", timedelta(seconds=5))
     @patch("KM4K.servo", autospec=True)
     @patch("KM4K.read_nfc", side_effect=[b"456789", b"456789", InterruptedError])
     def test_start_system_with_redis_cache_expires(
