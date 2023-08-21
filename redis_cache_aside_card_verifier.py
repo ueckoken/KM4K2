@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from redis import Redis
 
 from card_verifier_interface import CardVerifierInterface
@@ -6,13 +8,13 @@ from card_verifier_interface import CardVerifierInterface
 class RedisCacheAsideCardVerifier:
     verifier: CardVerifierInterface
     cache: Redis
-    expire_in: int
+    expire_in: timedelta
 
     def __init__(
         self,
         verifier: CardVerifierInterface,
         cache: Redis,
-        expire_in: int,
+        expire_in: timedelta,
     ):
         super().__init__()
         self.verifier = verifier

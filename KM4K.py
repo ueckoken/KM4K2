@@ -4,6 +4,7 @@ import binascii
 import os
 import sys
 import time
+from datetime import timedelta
 
 import nfc
 import redis
@@ -71,7 +72,7 @@ def main(_):
     okled_pin = 19
     ngled_pin = 26
     # 有効期間1週間
-    cache_expires_seconds = 60 * 60 * 24 * 7
+    cache_expires_delta = timedelta(weeks=1)
 
     # Redisに接続
     conn = redis.StrictRedis(
@@ -83,7 +84,7 @@ def main(_):
     redis_cached_api_verifier = RedisCacheAsideCardVerifier(
         api_verifier,
         conn,
-        cache_expires_seconds,
+        cache_expires_delta,
     )
 
     servo.reset()
