@@ -6,8 +6,8 @@ from unittest.mock import create_autospec
 
 from redis import StrictRedis
 
-from card_verifier_interface import CardVerifierInterface
-from redis_cache_aside_card_verifier import RedisCacheAsideCardVerifier
+from km4k2.card_verifier_interface import CardVerifierInterface
+from km4k2.redis_cache_aside_card_verifier import RedisCacheAsideCardVerifier
 
 
 class TestRedisCachedCardVerifier(TestCase):

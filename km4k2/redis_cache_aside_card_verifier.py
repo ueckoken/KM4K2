@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from redis import Redis
 
-from card_verifier_interface import CardVerifierInterface
+from km4k2.card_verifier_interface import CardVerifierInterface
 
 
 class RedisCacheAsideCardVerifier:
