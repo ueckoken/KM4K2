@@ -16,7 +16,7 @@ systemctl status KM4K2
 
 ### 環境変数
 
-- `VERIFY_API_URL` : CardManagerのカード認証用エンドポイント
+- `CARD_MANAGER_BASE_URL` : CardManagerのAPIベースURL
 - `API_KEY` : CardManagerのAPI-Key
 - `REDIS_HOST` : Redisサーバーのホスト名
 - `REDIS_PORT` : Redisサーバーのポート番号
