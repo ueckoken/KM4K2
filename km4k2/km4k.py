@@ -25,7 +25,14 @@ def start_system(isopen, okled_pin, ngled_pin, verifier: CardVerifierInterface):
     while True:
         idm = read_nfc()
         if idm:
-            verified = verifier.verify(idm.decode())
+            try:
+                verified = verifier.verify(idm.decode())
+            except Exception as e:  # noqa: BLE001
+                GPIO.output(ngled_pin, GPIO.HIGH)
+                time.sleep(3)
+                GPIO.output(ngled_pin, GPIO.LOW)
+                print(e)
+                continue
             if verified:
                 print("Registered (idm:" + idm.decode() + ")")
 

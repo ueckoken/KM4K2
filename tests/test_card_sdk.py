@@ -1,6 +1,7 @@
 # ruff: noqa: S101
 from unittest import TestCase
 
+import requests
 import requests_mock
 
 from km4k2.card_sdk import CardSDK
@@ -18,7 +19,8 @@ class TestCardSDK(TestCase):
                 json={"error": "Unauthorized"},
             )
 
-            self.assertFalse(card.verify("dummy_idm"))
+            with self.assertRaises(requests.exceptions.HTTPError):
+                card.verify("dummy_idm")
 
     def test_verify_invalid_request(self):
         card = CardSDK("https://card.ueckoken.club", "dummy_api_key")
@@ -31,7 +33,8 @@ class TestCardSDK(TestCase):
                 json={"error": "Bad request"},
             )
 
-            self.assertFalse(card.verify("dummy_idm"))
+            with self.assertRaises(requests.exceptions.HTTPError):
+                card.verify("dummy_idm")
 
     def test_verify_does_not_exist(self):
         card = CardSDK("https://card.ueckoken.club", "dummy_api_key")
