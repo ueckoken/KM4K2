@@ -23,7 +23,7 @@ def main():
         port=os.environ["REDIS_PORT"],
         db=os.environ["REDIS_DB"],
     )
-    api_verifier = CardSDK("https://card.ueckoken.club", os.environ["API_KEY"])
+    api_verifier = CardSDK(os.environ["CARD_MANAGER_BASE_URL"], os.environ["API_KEY"])
     redis_cached_api_verifier = RedisCacheAsideCardVerifier(
         api_verifier,
         conn,
