@@ -45,7 +45,7 @@ def main():
     try:
         logger.info("Welcome to Koken Kagi System")
         start_system(isopen, okled_pin, ngled_pin, redis_cached_api_verifier)
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.critical("An error has occured!", exc_info=True)
 
 
