@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+from logging import getLogger
 
 import redis
 from RPi import GPIO
@@ -9,8 +10,14 @@ from km4k2.card_sdk import CardSDK
 from km4k2.km4k import start_system
 from km4k2.redis_cache_aside_card_verifier import RedisCacheAsideCardVerifier
 
+logger = getLogger(__name__)
+
 
 def main():
+    import logging
+
+    logging.basicConfig(level=logging.DEBUG)
+
     isopen = False
     okled_pin = 19
     ngled_pin = 26
@@ -36,11 +43,10 @@ def main():
     GPIO.setup(ngled_pin, GPIO.OUT)
 
     try:
-        print("Welcome to Koken Kagi System")
+        logger.info("Welcome to Koken Kagi System")
         start_system(isopen, okled_pin, ngled_pin, redis_cached_api_verifier)
-    except Exception as e:  # noqa: BLE001
-        print("An error has occured!")
-        print(e)
+    except Exception:
+        logger.critical("An error has occured!", exc_info=True)
 
 
 if __name__ == "__main__":

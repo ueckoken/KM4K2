@@ -1,6 +1,10 @@
 import time
+from logging import getLogger
 
 import wiringpi
+
+logger = getLogger(__name__)
+
 
 wiringpi.wiringPiSetupGpio()
 wiringpi.pinMode(12, wiringpi.GPIO.PWM_OUTPUT)
@@ -31,7 +35,10 @@ def reset():
 
 
 if __name__ == "__main__":
+    import logging
+
+    logging.basicConfig(level=logging.DEBUG)
     while True:
         angle = int(input())
         servo(angle)
-        print("Angle: " + str(angle))
+        logger.debug("Angle: %d", angle)
