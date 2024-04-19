@@ -3253,16 +3253,6 @@
 		(uuid "45360337-4dcc-4ddc-a72a-95b7d8362e8b")
 	)
 	(gr_line
-		(start 128.1 48.37)
-		(end 128.06 62.37)
-		(stroke
-			(width 0.1)
-			(type default)
-		)
-		(layer "User.1")
-		(uuid "8049a709-f63d-43e4-94cd-3e6e749b15e9")
-	)
-	(gr_line
 		(start 128.06 62.37)
 		(end 124.49 62.37)
 		(stroke
