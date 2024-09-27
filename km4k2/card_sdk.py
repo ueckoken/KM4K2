@@ -13,21 +13,23 @@ class CardSDK:
         self.api_key = api_key
 
     def verify(self, idm: str) -> bool:
+        """
+        Raises:
+            requests.exceptions.HTTPError: if API returns unexpected HTTP status
+            requests.exceptions.JSONDecodeError: if API returns invalid JSON
+        """
         url = urljoin(self.base_url, "/api/card/verify")
         payload = json.dumps({"idm": idm})
         headers = {"X-Api-Key": self.api_key, "Content-Type": "application/json"}
         response = requests.request("GET", url, headers=headers, data=payload)
 
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            print(e)
+        if response.status_code == requests.codes.not_found:  # unregistered
+            return False
+        if response.status_code == requests.codes.forbidden:  # expired
             return False
 
-        try:
-            status = response.json()
-        except requests.exceptions.JSONDecodeError as e:
-            print(e)
-            return False
+        response.raise_for_status()
 
-        return status["verified"] is not None and status["verified"]
+        # ok
+        status = response.json()
+        return status["verified"]
