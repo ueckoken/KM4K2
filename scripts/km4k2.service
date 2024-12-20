@@ -1,0 +1,18 @@
+[Unit]
+Description=KM4K2
+After=network.target
+
+[Service]
+WorkingDirectory = /home/pi/KM4K2
+Type=simple
+ExecStart=/usr/bin/python3 -m km4k2
+ExecStop=/bin/kill -WINCH ${MAINPID}
+KillSignal=SIGCONT
+Environment=API_KEY=aQLjnVKbKeX4pFXBHGJmVFdERfGYi4JCjt2Dq4PjV3yJe9uLtNAHAV7
+Environment=CARD_MANAGER_BASE_URL=https://card.ueckoken.club
+Environment=REDIS_HOST=localhost
+Environment=REDIS_PORT=6379
+Environment=REDIS_DB=0
+
+[Install]
+WantedBy=multi-user.target
